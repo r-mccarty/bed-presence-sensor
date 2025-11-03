@@ -1,0 +1,34 @@
+# Calibration Services Package
+# Provides ESPHome services for the Home Assistant calibration wizard
+
+api:
+  services:
+    # Service: Start collecting calibration samples
+    - service: start_calibration
+      variables:
+        mode: string  # "occupied" or "vacant"
+      then:
+        - logger.log:
+            format: "Starting calibration for mode: %s"
+            args: ['mode.c_str()']
+        # Additional calibration logic would go here
+        # For now, this is a placeholder for the calibration flow
+
+    # Service: Stop calibration and compute thresholds
+    - service: stop_calibration
+      then:
+        - logger.log: "Stopping calibration and computing thresholds"
+        # Calibration computation logic would go here
+
+    # Service: Reset to factory defaults
+    - service: reset_to_defaults
+      then:
+        - logger.log: "Resetting to factory defaults"
+        - lambda: |-
+            auto engine = id(bed_occupied);
+            engine->update_thresholds(50, 30);
+            engine->update_debounce_timers(2000, 5000);
+            id(occupied_threshold_input).publish_state(50);
+            id(vacant_threshold_input).publish_state(30);
+            id(debounce_occupied_input).publish_state(2000);
+            id(debounce_vacant_input).publish_state(5000);

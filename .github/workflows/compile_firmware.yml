@@ -1,0 +1,50 @@
+name: Compile Firmware
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'esphome/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'esphome/**'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ESPHome
+        run: pip install esphome
+
+      - name: Compile ESPHome firmware
+        run: |
+          cd esphome
+          esphome compile bed-presence-detector.yaml
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Run C++ unit tests
+        run: |
+          cd esphome
+          platformio test -e native

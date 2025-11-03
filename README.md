@@ -7,6 +7,26 @@ A high-reliability, tunable, and transparent bed-presence detection solution for
 
 The core of this project is a sophisticated on-device presence engine that runs on the ESP32, with a user-friendly Calibration Wizard and Operator Dashboard inside Home Assistant. This repository contains all the code, configuration, and documentation necessary to build, deploy, and test the solution.
 
+## Development Status
+
+**Current Status:** Repository scaffolded and ready for development
+
+The complete repository structure has been created with:
+- ✅ ESPHome custom component framework (C++ presence engine)
+- ✅ Modular ESPHome configuration using packages
+- ✅ Home Assistant dashboard and automation blueprints
+- ✅ CI/CD workflows for firmware compilation and YAML linting
+- ✅ C++ unit test structure
+- ✅ E2E test framework
+- ✅ Documentation structure
+
+**Next Steps:**
+- Complete C++ unit test implementation with ESPHome framework mocking
+- Implement calibration logic in ESPHome services
+- Add Home Assistant WebSocket client library for E2E tests
+- Test with actual hardware (M5Stack + LD2410 sensor)
+- Create 3D printable mounting solutions
+
 ## Key Features
 
 *   **On-Device Presence Engine:** All core logic runs on the ESP32 for maximum speed and reliability. Not dependent on Wi-Fi or Home Assistant for its decision-making.
@@ -46,7 +66,7 @@ When you launch the Codespace, the `.devcontainer/devcontainer.json` configurati
 *   **ESPHome** (Command Line Interface)
 *   **PlatformIO** (For C++ unit testing)
 *   **Python 3** and `pip`
-*   Required Python libraries for Home Assistant testing (`hass-ws`, `pytest`)
+*   Required Python libraries (`pytest`, `yamllint`, `black`)
 
 There are no manual setup steps required.
 

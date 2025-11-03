@@ -1,0 +1,63 @@
+blueprint:
+  name: Bed Presence Automation
+  description: |
+    Automation triggered by bed presence detection.
+    Performs actions when someone gets in or out of bed.
+  domain: automation
+  input:
+    bed_presence_sensor:
+      name: Bed Presence Sensor
+      description: The binary sensor that tracks bed occupancy
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: occupancy
+
+    occupied_actions:
+      name: Actions when bed becomes occupied
+      description: Actions to run when someone gets in bed
+      default: []
+      selector:
+        action: {}
+
+    vacant_actions:
+      name: Actions when bed becomes vacant
+      description: Actions to run when someone gets out of bed
+      default: []
+      selector:
+        action: {}
+
+    time_restrictions:
+      name: Time Restrictions (Optional)
+      description: Only trigger during specific times
+      default: {}
+      selector:
+        time: {}
+
+variables:
+  bed_sensor: !input bed_presence_sensor
+
+trigger:
+  - platform: state
+    entity_id: !input bed_presence_sensor
+    to: "on"
+    id: occupied
+  - platform: state
+    entity_id: !input bed_presence_sensor
+    to: "off"
+    id: vacant
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: occupied
+        sequence: !input occupied_actions
+      - conditions:
+          - condition: trigger
+            id: vacant
+        sequence: !input vacant_actions
+
+mode: single

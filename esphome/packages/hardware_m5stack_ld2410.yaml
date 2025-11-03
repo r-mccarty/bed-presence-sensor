@@ -1,0 +1,46 @@
+# Hardware Configuration for M5Stack with LD2410 Radar Sensor
+# Defines the hardware interfaces and LD2410 sensor configuration
+
+# UART for LD2410 communication
+uart:
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 256000
+  parity: NONE
+  stop_bits: 1
+
+# LD2410 mmWave Radar Sensor
+ld2410:
+  uart_id: uart_bus
+
+binary_sensor:
+  # Raw presence detection from LD2410
+  - platform: ld2410
+    has_target:
+      name: "LD2410 Presence"
+    has_moving_target:
+      name: "LD2410 Moving Target"
+    has_still_target:
+      name: "LD2410 Still Target"
+
+sensor:
+  # Energy values from LD2410 (used by presence engine)
+  - platform: ld2410
+    moving_distance:
+      name: "LD2410 Moving Distance"
+    still_distance:
+      name: "LD2410 Still Distance"
+    moving_energy:
+      name: "LD2410 Moving Energy"
+      id: ld2410_moving_energy
+    still_energy:
+      name: "LD2410 Still Energy"
+      id: ld2410_still_energy
+    detection_distance:
+      name: "LD2410 Detection Distance"
+
+# M5Stack-specific configuration
+esp32:
+  board: m5stack-core-esp32
+  framework:
+    type: arduino

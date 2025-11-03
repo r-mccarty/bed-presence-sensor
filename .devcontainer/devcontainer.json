@@ -1,0 +1,29 @@
+{
+  "name": "HA Bed Presence Detector Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true
+    }
+  },
+  "postCreateCommand": "pip install --upgrade pip && pip install esphome platformio pytest pytest-asyncio yamllint black && cd tests/e2e && pip install -r requirements.txt && cd ../..",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "ms-python.python"
+      ],
+      "settings": {
+        "python.linting.enabled": true,
+        "python.formatting.provider": "black",
+        "[yaml]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+  "forwardPorts": [],
+  "remoteUser": "vscode"
+}

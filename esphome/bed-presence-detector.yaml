@@ -1,0 +1,46 @@
+# Bed Presence Detector - Main Configuration File
+# This is the entry point that brings together all the packages
+
+substitutions:
+  device_name: bed-presence-detector
+  friendly_name: Bed Presence Detector
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: "Bed presence detection using LD2410 mmWave radar"
+
+# Include all package configurations
+packages:
+  hardware: !include packages/hardware_m5stack_ld2410.yaml
+  presence_engine: !include packages/presence_engine.yaml
+  services: !include packages/services_calibration.yaml
+  diagnostics: !include packages/diagnostics.yaml
+
+# Wi-Fi configuration
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot in case Wi-Fi connection fails
+  ap:
+    ssid: "${device_name} Fallback"
+    password: !secret ap_password
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# Enable Over-The-Air updates
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable web server for diagnostics
+web_server:
+  port: 80

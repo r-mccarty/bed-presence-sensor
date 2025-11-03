@@ -1,0 +1,148 @@
+# Bed Presence Dashboard
+# Provides operator view and calibration wizard interface
+
+title: Bed Presence Detector
+views:
+  - title: Status
+    path: status
+    icon: mdi:bed
+    cards:
+      # Current Status Card
+      - type: entities
+        title: Current Status
+        entities:
+          - entity: binary_sensor.bed_occupied
+            name: Bed Occupied
+          - entity: sensor.presence_state_reason
+            name: Last State Change Reason
+          - entity: sensor.ld2410_still_energy
+            name: Current Energy Level
+
+      # Live Energy Chart
+      - type: history-graph
+        title: Energy Levels (Live)
+        hours_to_show: 1
+        refresh_interval: 0
+        entities:
+          - entity: sensor.ld2410_still_energy
+            name: Still Energy
+          - entity: sensor.ld2410_moving_energy
+            name: Moving Energy
+
+      # Threshold Visualization
+      - type: custom:apexcharts-card
+        header:
+          title: Thresholds & Current State
+          show: true
+        graph_span: 5min
+        series:
+          - entity: sensor.ld2410_still_energy
+            name: Still Energy
+            stroke_width: 2
+          - entity: number.occupied_threshold
+            name: Occupied Threshold
+            type: line
+            stroke_width: 1
+            curve: stepline
+          - entity: number.vacant_threshold
+            name: Vacant Threshold
+            type: line
+            stroke_width: 1
+            curve: stepline
+
+  - title: Configuration
+    path: config
+    icon: mdi:cog
+    cards:
+      # Threshold Configuration
+      - type: entities
+        title: Threshold Settings
+        entities:
+          - entity: number.occupied_threshold
+            name: Occupied Threshold
+          - entity: number.vacant_threshold
+            name: Vacant Threshold
+
+      # Debounce Timer Configuration
+      - type: entities
+        title: Debounce Timers
+        entities:
+          - entity: number.debounce_occupied_ms
+            name: Debounce Occupied (ms)
+          - entity: number.debounce_vacant_ms
+            name: Debounce Vacant (ms)
+
+      # Quick Actions
+      - type: button
+        name: Reset to Factory Defaults
+        tap_action:
+          action: call-service
+          service: esphome.bed_presence_detector_reset_to_defaults
+
+  - title: Calibration Wizard
+    path: calibration
+    icon: mdi:wizard-hat
+    cards:
+      - type: markdown
+        content: |
+          ## Calibration Wizard
+
+          Follow these steps to calibrate your bed presence detector:
+
+          1. **Vacant Calibration**: Ensure the bed is completely empty
+          2. **Occupied Calibration**: Lie down on the bed in your normal sleeping position
+          3. **Review & Apply**: Check the calculated thresholds and apply them
+
+      # Calibration Step Tracker
+      - type: entities
+        title: Calibration Progress
+        entities:
+          - input_select.calibration_step
+          - input_number.calibration_vacant_max
+          - input_number.calibration_occupied_min
+          - input_boolean.calibration_in_progress
+
+      # Calibration Actions
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: Start Vacant Calibration
+            icon: mdi:bed-empty
+            tap_action:
+              action: call-service
+              service: script.calibrate_vacant_mode
+          - type: button
+            name: Start Occupied Calibration
+            icon: mdi:bed
+            tap_action:
+              action: call-service
+              service: script.calibrate_occupied_mode
+
+  - title: Diagnostics
+    path: diagnostics
+    icon: mdi:information
+    cards:
+      - type: entities
+        title: Device Information
+        entities:
+          - entity: sensor.wifi_signal
+            name: Wi-Fi Signal
+          - entity: sensor.uptime
+            name: Uptime
+          - entity: sensor.ip_address
+            name: IP Address
+          - entity: sensor.esphome_version
+            name: ESPHome Version
+
+      # Raw LD2410 Data
+      - type: entities
+        title: LD2410 Raw Data
+        entities:
+          - entity: binary_sensor.ld2410_presence
+            name: Raw Presence
+          - entity: binary_sensor.ld2410_moving_target
+            name: Moving Target
+          - entity: binary_sensor.ld2410_still_target
+            name: Still Target
+          - entity: sensor.ld2410_detection_distance
+            name: Detection Distance

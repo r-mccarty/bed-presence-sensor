@@ -1,0 +1,8 @@
+# Python dependencies for End-to-End integration tests
+
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Note: Home Assistant WebSocket client library needs to be specified
+# Common options: homeassistant-api, python-homeassistant-api, or direct websocket usage
+# TODO: Add the correct Home Assistant API library once selected

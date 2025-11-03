@@ -1,0 +1,54 @@
+# ESPHome
+esphome/secrets.yaml
+esphome/.esphome/
+esphome/config/
+esphome/*.bin
+
+# PlatformIO
+esphome/.pio/
+esphome/.pioenvs/
+esphome/.piolibdeps/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Home Assistant
+homeassistant/secrets.yaml
+homeassistant/.storage/
+homeassistant/home-assistant.log
+homeassistant/home-assistant_v2.db
+
+# Test outputs
+tests/e2e/.pytest_cache/
+tests/e2e/*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# Environment variables
+.env
+.env.local
