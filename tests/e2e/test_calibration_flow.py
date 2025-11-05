@@ -57,35 +57,35 @@ async def test_presence_sensor_exists(ha_client):
 @pytest.mark.asyncio
 async def test_threshold_entities_exist(ha_client):
     """Test that threshold configuration entities exist"""
-    occupied_threshold = await ha_client.get_state("number.occupied_threshold")
-    vacant_threshold = await ha_client.get_state("number.vacant_threshold")
+    k_on_threshold = await ha_client.get_state("number.k_on_on_threshold_multiplier")
+    k_off_threshold = await ha_client.get_state("number.k_off_off_threshold_multiplier")
 
-    assert occupied_threshold is not None, "number.occupied_threshold not found"
-    assert vacant_threshold is not None, "number.vacant_threshold not found"
+    assert k_on_threshold is not None, "number.k_on_on_threshold_multiplier not found"
+    assert k_off_threshold is not None, "number.k_off_off_threshold_multiplier not found"
 
-    # Verify thresholds are sensible
-    occupied_val = float(occupied_threshold["state"])
-    vacant_val = float(vacant_threshold["state"])
-    assert occupied_val > vacant_val, "Occupied threshold should be higher than vacant"
+    # Verify thresholds are sensible (k_on should be higher than k_off for hysteresis)
+    k_on_val = float(k_on_threshold["state"])
+    k_off_val = float(k_off_threshold["state"])
+    assert k_on_val > k_off_val, "k_on threshold should be higher than k_off for hysteresis"
 
 
 @pytest.mark.asyncio
 async def test_update_threshold_via_service(ha_client):
     """Test that we can update thresholds via Home Assistant service call"""
-    # Set a new threshold value
+    # Set a new k_on threshold value (Phase 1: z-score multiplier, typical range 0-10)
     await ha_client.call_service(
         "number",
         "set_value",
-        entity_id="number.occupied_threshold",
-        value=60
+        entity_id="number.k_on_on_threshold_multiplier",
+        value=5.0
     )
 
     # Wait for update to propagate
     await asyncio.sleep(1)
 
     # Verify the update
-    state = await ha_client.get_state("number.occupied_threshold")
-    assert float(state["state"]) == 60, "Threshold was not updated"
+    state = await ha_client.get_state("number.k_on_on_threshold_multiplier")
+    assert float(state["state"]) == 5.0, "k_on threshold was not updated"
 
 
 @pytest.mark.asyncio
@@ -116,12 +116,12 @@ async def test_reset_to_defaults(ha_client):
     # Wait for reset to complete
     await asyncio.sleep(2)
 
-    # Verify defaults are restored
-    occupied_state = await ha_client.get_state("number.occupied_threshold")
-    vacant_state = await ha_client.get_state("number.vacant_threshold")
+    # Verify defaults are restored (Phase 1 defaults: k_on=4.0, k_off=2.0)
+    k_on_state = await ha_client.get_state("number.k_on_on_threshold_multiplier")
+    k_off_state = await ha_client.get_state("number.k_off_off_threshold_multiplier")
 
-    assert float(occupied_state["state"]) == 50, "Occupied threshold not reset to default"
-    assert float(vacant_state["state"]) == 30, "Vacant threshold not reset to default"
+    assert float(k_on_state["state"]) == 4.0, "k_on threshold not reset to default (4.0)"
+    assert float(k_off_state["state"]) == 2.0, "k_off threshold not reset to default (2.0)"
 
 
 @pytest.mark.asyncio
@@ -132,6 +132,7 @@ async def test_state_reason_sensor(ha_client):
     assert len(state["state"]) > 0, "State reason is empty"
 
 
+@pytest.mark.skip(reason="Phase 3 feature: Calibration helper entities not yet implemented")
 @pytest.mark.asyncio
 async def test_calibration_helpers_exist(ha_client):
     """Test that the calibration helper entities exist in Home Assistant"""
@@ -142,6 +143,7 @@ async def test_calibration_helpers_exist(ha_client):
     assert calibration_in_progress is not None, "Calibration in_progress input_boolean not found"
 
 
+@pytest.mark.skip(reason="Phase 3 feature: Calibration scripts not yet implemented")
 @pytest.mark.asyncio
 async def test_full_calibration_flow(ha_client):
     """

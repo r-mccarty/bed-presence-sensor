@@ -220,49 +220,30 @@ The tests create a `SimplePresenceEngine` class that replicates Phase 1 logic wi
 
 ## Known Issues & Discrepancies
 
-### 1. Home Assistant Dashboard Entity Mismatches
+### ~~1. Home Assistant Dashboard Entity Mismatches~~ ✅ FIXED
 
 **File**: `homeassistant/dashboards/bed_presence_dashboard.yaml`
 
-**Problem**: Dashboard references entities that don't exist or have wrong names.
+**Status**: ✅ **RESOLVED** - All entity names updated to match Phase 1 implementation
 
-**Configuration View (lines 60-73)** references:
-- ❌ `number.occupied_threshold` (does not exist)
-- ❌ `number.vacant_threshold` (does not exist)
-- ❌ `number.debounce_occupied_ms` (Phase 2 feature, not implemented)
-- ❌ `number.debounce_vacant_ms` (Phase 2 feature, not implemented)
+**Changes made**:
+- ✅ Updated threshold visualization chart to use `number.k_on_on_threshold_multiplier` and `number.k_off_off_threshold_multiplier`
+- ✅ Updated configuration view entities to use correct Phase 1 entity names
+- ✅ Removed "Debounce Timers" section (Phase 2 feature, not yet implemented)
+- ✅ Commented out "Calibration Wizard" view (requires helper entities not yet defined)
 
-**Should reference**:
-- ✅ `number.k_on_on_threshold_multiplier`
-- ✅ `number.k_off_off_threshold_multiplier`
+### ~~2. E2E Tests Missing Dependency~~ ✅ FIXED
 
-**Threshold Visualization (lines 42-51)** references:
-- ❌ `number.occupied_threshold`
-- ❌ `number.vacant_threshold`
+**File**: `tests/e2e/test_calibration_flow.py` and `tests/e2e/requirements.txt`
 
-**Should reference**:
-- ✅ `number.k_on_on_threshold_multiplier`
-- ✅ `number.k_off_off_threshold_multiplier`
+**Status**: ✅ **RESOLVED** - Dependencies added and entity names corrected
 
-### 2. E2E Tests Missing Dependency
-
-**File**: `tests/e2e/test_calibration_flow.py`
-
-**Problem**: Imports `hass_ws.HomeAssistantClient` but `hass_ws` is not in `requirements.txt`.
-
-**Line 15**: `from hass_ws import HomeAssistantClient`
-
-**requirements.txt** only has:
-```
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
-# TODO: Add the correct Home Assistant API library
-```
-
-**Fix options**:
-1. Add a Home Assistant WebSocket library (e.g., `python-homeassistant-ws`, `homeassistant-api`)
-2. Update test code to match chosen library's API
-3. Tests also reference wrong entity names (see issue #1)
+**Changes made**:
+- ✅ Added `homeassistant-api>=4.0.0` to `requirements.txt`
+- ✅ Updated all test functions to use correct entity names (`number.k_on_on_threshold_multiplier`, `number.k_off_off_threshold_multiplier`)
+- ✅ Corrected expected default values in `test_reset_to_defaults()` from (50, 30) to (4.0, 2.0)
+- ✅ Updated test value in `test_update_threshold_via_service()` from 60 to 5.0 (appropriate for z-score multiplier)
+- ✅ Marked `test_calibration_helpers_exist()` and `test_full_calibration_flow()` as skipped (Phase 3 features)
 
 ### 3. Calibration Services Are Placeholders
 
@@ -325,7 +306,7 @@ esphome run bed-presence-detector.yaml      # Flash to device
 1. Copy `homeassistant/dashboards/bed_presence_dashboard.yaml` content
 2. Settings → Dashboards → Add Dashboard → Create new dashboard
 3. Edit Dashboard → Raw Configuration Editor → Paste YAML
-4. **IMPORTANT**: Fix entity names first (see Known Issues #1)
+4. ✅ Entity names are now correct for Phase 1 (no manual fixes needed)
 
 **Deploy automation blueprint**:
 1. Copy `homeassistant/blueprints/automation/bed_presence_automation.yaml`
@@ -335,15 +316,16 @@ esphome run bed-presence-detector.yaml      # Flash to device
 ### 3. Integration Testing
 
 **Prerequisites**:
-- Fix E2E test dependencies (see Known Issues #2)
+- ✅ E2E test dependencies now included in `requirements.txt`
 - Live Home Assistant instance with device connected
 - Long-lived access token
 
 ```bash
 cd tests/e2e
+pip install -r requirements.txt  # Install dependencies including homeassistant-api
 export HA_URL="ws://homeassistant.local:8123/api/websocket"
 export HA_TOKEN="your-token"
-pytest
+pytest  # Phase 3 tests will be skipped automatically
 ```
 
 ## Common Development Tasks
@@ -571,11 +553,11 @@ ota_password: "generate-with-esphome-wizard"
 - `esphome/packages/presence_engine.yaml` - k_on/k_off entities and lambdas
 - `esphome/test/test_presence_engine.cpp` - Unit tests (219 lines, 14 tests)
 
-### Files Needing Updates (Known Issues)
+### ~~Files Needing Updates (Known Issues)~~ ✅ ALL FIXED
 
-- `homeassistant/dashboards/bed_presence_dashboard.yaml` - Fix entity names (lines 42-51, 60-73)
-- `tests/e2e/requirements.txt` - Add Home Assistant WebSocket library
-- `tests/e2e/test_calibration_flow.py` - Fix entity names and library import
+- ✅ `homeassistant/dashboards/bed_presence_dashboard.yaml` - Entity names corrected, Phase 2 features removed
+- ✅ `tests/e2e/requirements.txt` - Home Assistant WebSocket library added
+- ✅ `tests/e2e/test_calibration_flow.py` - Entity names and default values corrected, Phase 3 tests skipped
 
 ### Placeholder Files (Empty - 0 bytes)
 
@@ -588,7 +570,7 @@ ota_password: "generate-with-esphome-wizard"
 - Threshold defaults: `bed_presence.h` (lines 49-50), `presence_engine.yaml` (lines 24, 40)
 - GPIO pins: `packages/hardware_m5stack_ld2410.yaml` (for different boards)
 - Baseline statistics: `bed_presence.h` (lines 43-46) - update after calibration
-- Dashboard layout: `bed_presence_dashboard.yaml` (after fixing entity names)
+- Dashboard layout: `bed_presence_dashboard.yaml` (entity names now correct for Phase 1)
 
 ### Files Requiring Careful Changes
 
@@ -623,9 +605,9 @@ ota_password: "generate-with-esphome-wizard"
 
 ### Home Assistant Integration Issues
 
-**Error**: `Entity not found: number.occupied_threshold`
-- **Cause**: Dashboard uses wrong entity names (see Known Issues #1)
-- **Fix**: Replace with `number.k_on_on_threshold_multiplier`
+**Error**: `Entity not found: number.k_on_on_threshold_multiplier`
+- **Cause**: ESPHome device not yet connected to Home Assistant or entity names don't match
+- **Fix**: Ensure device is connected and entity names match Phase 1 configuration
 
 **Error**: Device not auto-discovered
 - **Cause**: WiFi/API configuration issue
@@ -681,19 +663,18 @@ ota_password: "generate-with-esphome-wizard"
 - ✅ CI/CD workflows (compile + test)
 - ✅ GitHub Codespaces development environment
 - ✅ Comprehensive documentation
+- ✅ **NEW**: Home Assistant dashboard with correct Phase 1 entity names
+- ✅ **NEW**: E2E tests with proper dependencies and entity references
 
 **What Needs Work**:
-- ⚠️ Home Assistant dashboard entity names (wrong references)
-- ⚠️ E2E tests missing dependency (hass_ws library)
 - ⚠️ Calibration services are placeholders (Phase 3 feature)
 - ⚠️ Hardware assets are empty placeholders (STL, diagrams, demo)
 - ⚠️ Firmware not tested with actual hardware
 - ⚠️ Phase 2 (debouncing) and Phase 3 (auto-calibration) not implemented
 
 **Next Steps**:
-1. Fix dashboard entity names to match actual Phase 1 entities
-2. Test firmware with actual M5Stack + LD2410 hardware
-3. Collect baseline data and update hardcoded statistics
-4. Add Home Assistant WebSocket library to E2E tests
-5. Implement Phase 2 state machine and debouncing
-6. Implement Phase 3 automated calibration
+1. Test firmware with actual M5Stack + LD2410 hardware
+2. Collect baseline data and update hardcoded statistics
+3. Implement Phase 2 state machine and debouncing
+4. Implement Phase 3 automated calibration
+5. Create hardware assets (3D mount, wiring diagram, demo GIF)

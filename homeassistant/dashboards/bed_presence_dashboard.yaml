@@ -39,13 +39,13 @@ views:
           - entity: sensor.ld2410_still_energy
             name: Still Energy
             stroke_width: 2
-          - entity: number.occupied_threshold
-            name: Occupied Threshold
+          - entity: number.k_on_on_threshold_multiplier
+            name: k_on (ON Threshold)
             type: line
             stroke_width: 1
             curve: stepline
-          - entity: number.vacant_threshold
-            name: Vacant Threshold
+          - entity: number.k_off_off_threshold_multiplier
+            name: k_off (OFF Threshold)
             type: line
             stroke_width: 1
             curve: stepline
@@ -58,19 +58,12 @@ views:
       - type: entities
         title: Threshold Settings
         entities:
-          - entity: number.occupied_threshold
-            name: Occupied Threshold
-          - entity: number.vacant_threshold
-            name: Vacant Threshold
+          - entity: number.k_on_on_threshold_multiplier
+            name: k_on (ON Threshold Multiplier)
+          - entity: number.k_off_off_threshold_multiplier
+            name: k_off (OFF Threshold Multiplier)
 
-      # Debounce Timer Configuration
-      - type: entities
-        title: Debounce Timers
-        entities:
-          - entity: number.debounce_occupied_ms
-            name: Debounce Occupied (ms)
-          - entity: number.debounce_vacant_ms
-            name: Debounce Vacant (ms)
+      # NOTE: Debounce Timer Configuration removed - Phase 2 feature not yet implemented
 
       # Quick Actions
       - type: button
@@ -79,44 +72,49 @@ views:
           action: call-service
           service: esphome.bed_presence_detector_reset_to_defaults
 
-  - title: Calibration Wizard
-    path: calibration
-    icon: mdi:wizard-hat
-    cards:
-      - type: markdown
-        content: |
-          ## Calibration Wizard
-
-          Follow these steps to calibrate your bed presence detector:
-
-          1. **Vacant Calibration**: Ensure the bed is completely empty
-          2. **Occupied Calibration**: Lie down on the bed in your normal sleeping position
-          3. **Review & Apply**: Check the calculated thresholds and apply them
-
-      # Calibration Step Tracker
-      - type: entities
-        title: Calibration Progress
-        entities:
-          - input_select.calibration_step
-          - input_number.calibration_vacant_max
-          - input_number.calibration_occupied_min
-          - input_boolean.calibration_in_progress
-
-      # Calibration Actions
-      - type: horizontal-stack
-        cards:
-          - type: button
-            name: Start Vacant Calibration
-            icon: mdi:bed-empty
-            tap_action:
-              action: call-service
-              service: script.calibrate_vacant_mode
-          - type: button
-            name: Start Occupied Calibration
-            icon: mdi:bed
-            tap_action:
-              action: call-service
-              service: script.calibrate_occupied_mode
+  # NOTE: Calibration Wizard view commented out - requires helper entities not yet defined
+  # Uncomment when input_select.calibration_step, input_number.calibration_vacant_max,
+  # input_number.calibration_occupied_min, input_boolean.calibration_in_progress,
+  # script.calibrate_vacant_mode, and script.calibrate_occupied_mode are created
+  #
+  # - title: Calibration Wizard
+  #   path: calibration
+  #   icon: mdi:wizard-hat
+  #   cards:
+  #     - type: markdown
+  #       content: |
+  #         ## Calibration Wizard
+  #
+  #         Follow these steps to calibrate your bed presence detector:
+  #
+  #         1. **Vacant Calibration**: Ensure the bed is completely empty
+  #         2. **Occupied Calibration**: Lie down on the bed in your normal sleeping position
+  #         3. **Review & Apply**: Check the calculated thresholds and apply them
+  #
+  #     # Calibration Step Tracker
+  #     - type: entities
+  #       title: Calibration Progress
+  #       entities:
+  #         - input_select.calibration_step
+  #         - input_number.calibration_vacant_max
+  #         - input_number.calibration_occupied_min
+  #         - input_boolean.calibration_in_progress
+  #
+  #     # Calibration Actions
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: button
+  #           name: Start Vacant Calibration
+  #           icon: mdi:bed-empty
+  #           tap_action:
+  #             action: call-service
+  #             service: script.calibrate_vacant_mode
+  #         - type: button
+  #           name: Start Occupied Calibration
+  #           icon: mdi:bed
+  #           tap_action:
+  #             action: call-service
+  #             service: script.calibrate_occupied_mode
 
   - title: Diagnostics
     path: diagnostics
