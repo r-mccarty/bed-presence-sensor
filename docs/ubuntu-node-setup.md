@@ -293,6 +293,465 @@ python3 -c "import secrets; import base64; print(base64.b64encode(secrets.token_
 
 ## Development Workflow
 
+**⚠️ CRITICAL**: This project uses a **two-location workflow** (Codespace for development, Ubuntu-node for flashing). It's essential to understand where code changes should be made and how to sync them properly.
+
+---
+
+## Codespace ↔ Ubuntu-node Workflow
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                       DEVELOPMENT LOCATIONS                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────────────────┐              ┌──────────────────────┐   │
+│  │   GitHub Codespace   │              │    Ubuntu Node       │   │
+│  │  ─────────────────   │              │  ────────────────    │   │
+│  │  • Code editing      │◄────git─────►│  • Firmware flash   │   │
+│  │  • Git operations    │              │  • Device testing   │   │
+│  │  • Documentation     │              │  • USB connection   │   │
+│  │  • NO device access  │              │  • HA integration   │   │
+│  └──────────────────────┘              └──────────────────────┘   │
+│         ▲                                         │                 │
+│         │                                         │                 │
+│         └───────── git push/pull ─────────────────┘                │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+                              ▼
+                    ┌──────────────────┐
+                    │   M5Stack Device  │
+                    │  ───────────────  │
+                    │  USB connected to │
+                    │  Ubuntu Node only │
+                    └──────────────────┘
+```
+
+### Key Principles
+
+1. **Source of Truth**: Git repository (GitHub)
+2. **Code Development**: GitHub Codespace
+3. **Firmware Compilation & Flashing**: Ubuntu-node (has physical device)
+4. **Syncing Method**: Git (push from Codespace → pull on ubuntu-node)
+
+### Common Pitfall ⚠️
+
+**NEVER** edit code directly on ubuntu-node without committing to git. This leads to:
+- Codespace and ubuntu-node having different versions
+- Confusion about which code is "correct"
+- Risk of flashing outdated firmware
+- Loss of work when files get out of sync
+
+---
+
+## Workflow 1: Making Code Changes
+
+**When to use**: Editing C++ code, YAML configs, or documentation
+
+### Step 1: Edit in Codespace
+
+```bash
+# In GitHub Codespace (browser or VS Code)
+cd /workspaces/bed-presence-sensor
+
+# Edit files (example: updating baseline calibration)
+nano esphome/custom_components/bed_presence_engine/bed_presence.h
+
+# Or edit YAML configurations
+nano esphome/bed-presence-detector.yaml
+```
+
+### Step 2: Test Compilation in Codespace (Optional but Recommended)
+
+```bash
+cd /workspaces/bed-presence-sensor/esphome
+
+# Compile to verify syntax (won't actually flash)
+esphome compile bed-presence-detector.yaml
+
+# Run C++ unit tests
+platformio test -e native
+```
+
+**Why this matters**: Catch syntax errors BEFORE syncing to ubuntu-node.
+
+### Step 3: Commit to Git
+
+```bash
+cd /workspaces/bed-presence-sensor
+
+# Stage your changes
+git add esphome/custom_components/bed_presence_engine/bed_presence.h
+git add esphome/bed-presence-detector.yaml
+
+# Commit with descriptive message
+git commit -m "Update baseline calibration with real values
+
+- Set μ=6.3% (mean still energy, empty bed)
+- Set σ=2.6% (std dev still energy)
+- Collected 2025-11-05 with 30 samples
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Push to GitHub
+git push origin main
+```
+
+### Step 4: Sync to Ubuntu-node
+
+```bash
+# SSH into ubuntu-node
+ssh ubuntu-node
+
+# Navigate to repository
+cd ~/bed-presence-sensor
+
+# Pull latest changes from GitHub
+git pull origin main
+
+# Verify the changes are present
+git log -1  # Check latest commit
+```
+
+### Step 5: Flash Firmware
+
+```bash
+# On ubuntu-node (still connected via SSH)
+cd ~/bed-presence-sensor/esphome
+source ~/esphome-venv/bin/activate
+
+# Flash device (compiles + uploads)
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0
+```
+
+**✅ Result**: Firmware on device matches code in Codespace and git
+
+---
+
+## Workflow 2: Quick Iteration (Testing on Device)
+
+**When to use**: Rapid testing of small changes (threshold tweaks, debugging)
+
+**⚠️ DANGER ZONE**: This workflow bypasses git and can cause sync issues. Use sparingly and commit immediately after.
+
+### Option A: Edit on Ubuntu-node, Commit, Sync Back (RECOMMENDED)
+
+```bash
+# 1. SSH into ubuntu-node
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+
+# 2. Make quick change
+nano esphome/custom_components/bed_presence_engine/bed_presence.h
+
+# 3. Flash immediately
+cd esphome
+source ~/esphome-venv/bin/activate
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0
+
+# 4. IMMEDIATELY commit to git
+cd ~/bed-presence-sensor
+git add esphome/custom_components/bed_presence_engine/bed_presence.h
+git commit -m "Quick fix: adjust threshold defaults"
+git push origin main
+
+# 5. Pull in Codespace later
+# (In Codespace terminal)
+cd /workspaces/bed-presence-sensor
+git pull origin main
+```
+
+**Key**: Always commit and push immediately after testing succeeds.
+
+### Option B: Copy File from Codespace to Ubuntu-node (NOT RECOMMENDED)
+
+```bash
+# In Codespace
+# Copy updated file to ubuntu-node via stdin
+ssh ubuntu-node "cat > ~/bed-presence-sensor/esphome/custom_components/bed_presence_engine/bed_presence.h" < /workspaces/bed-presence-sensor/esphome/custom_components/bed_presence_engine/bed_presence.h
+
+# Flash on ubuntu-node
+ssh ubuntu-node "cd ~/bed-presence-sensor/esphome && source ~/esphome-venv/bin/activate && esphome run bed-presence-detector.yaml --device /dev/ttyACM0"
+
+# THEN: Commit in Codespace
+cd /workspaces/bed-presence-sensor
+git add esphome/custom_components/bed_presence_engine/bed_presence.h
+git commit -m "Update baseline values"
+git push origin main
+```
+
+**Why not recommended**: Bypasses git history, prone to errors, hard to track changes.
+
+---
+
+## Workflow 3: Baseline Calibration (Multi-step Process)
+
+**When to use**: Following `docs/phase1-completion-steps.md` Step 2 & 3
+
+### Step 1: Collect Baseline Data (on Ubuntu-node)
+
+```bash
+# SSH to ubuntu-node
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+
+# Run baseline collection script
+python3 scripts/collect_baseline.py
+
+# Script outputs:
+#   Mean (μ): 6.30
+#   Std Dev (σ): 2.56
+# RECORD THESE VALUES
+```
+
+### Step 2: Update Code (in Codespace)
+
+```bash
+# In Codespace
+cd /workspaces/bed-presence-sensor
+nano esphome/custom_components/bed_presence_engine/bed_presence.h
+
+# Update lines ~40-47 with collected values:
+# float mu_move_{6.3f};     // Mean still energy (empty bed)
+# float sigma_move_{2.6f};  // Std dev still energy (empty bed)
+# float mu_stat_{6.3f};
+# float sigma_stat_{2.6f};
+
+# Commit immediately
+git add esphome/custom_components/bed_presence_engine/bed_presence.h
+git commit -m "Calibrate baseline with real sensor data
+
+Baseline collected on $(date +%Y-%m-%d):
+- Mean (μ): 6.30%
+- Std Dev (σ): 2.56%
+- Samples: 30 over 60 seconds
+- Location: Bedroom, empty bed
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+git push origin main
+```
+
+### Step 3: Sync and Flash (on Ubuntu-node)
+
+```bash
+# SSH to ubuntu-node
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+
+# Pull calibrated baseline
+git pull origin main
+
+# Verify changes
+grep "mu_move_" esphome/custom_components/bed_presence_engine/bed_presence.h
+# Should show: float mu_move_{6.3f};
+
+# Flash firmware with calibrated baseline
+cd esphome
+source ~/esphome-venv/bin/activate
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0
+
+# Monitor logs to verify baseline is correct
+esphome logs bed-presence-detector.yaml --device /dev/ttyACM0
+# Look for: "Baseline (moving): μ=6.30, σ=2.60"
+```
+
+**✅ Verification**: Logs should show calibrated baseline, NOT placeholders (100.0, 20.0)
+
+---
+
+## Workflow 4: Secrets Management (Special Case)
+
+**⚠️ secrets.yaml is gitignored and must be managed manually**
+
+### Problem
+
+`esphome/secrets.yaml` contains WiFi credentials and is NOT in git. This file can get out of sync between Codespace and ubuntu-node.
+
+### Solution: Ubuntu-node is Source of Truth
+
+```bash
+# ALWAYS copy secrets FROM ubuntu-node TO Codespace (not the reverse)
+
+# In Codespace: Get secrets from ubuntu-node
+ssh ubuntu-node "cat ~/bed-presence-sensor/esphome/secrets.yaml" > /workspaces/bed-presence-sensor/esphome/secrets.yaml
+
+# Verify
+cat /workspaces/bed-presence-sensor/esphome/secrets.yaml
+# Should show: wifi_ssid: "TP-Link_BECC" (actual SSID)
+```
+
+**Why**: Ubuntu-node has the real WiFi credentials that work with the physical network. Codespace has placeholders.
+
+**When to sync secrets**:
+- Before compiling firmware in Codespace (if you want to test compilation)
+- After WiFi credentials change
+- When setting up a new Codespace
+
+**Never**:
+- Commit `secrets.yaml` to git
+- Copy placeholder secrets from Codespace to ubuntu-node
+
+---
+
+## Pre-flight Checklist (Before Flashing Firmware)
+
+Use this checklist to avoid common mistakes:
+
+### ✅ On Ubuntu-node:
+
+```bash
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+
+# 1. Verify git is up to date
+git status  # Should show: "Your branch is up to date with 'origin/main'"
+git log -1  # Check latest commit matches what you expect
+
+# 2. Verify secrets file exists and has real credentials
+cat esphome/secrets.yaml | grep wifi_ssid
+# Should show: wifi_ssid: "TP-Link_BECC" (or your actual SSID)
+# NOT: wifi_ssid: "YOUR_WIFI_SSID_HERE"
+
+# 3. Verify baseline calibration values (if updated)
+grep "mu_move_" esphome/custom_components/bed_presence_engine/bed_presence.h
+# Should show your calibrated values (e.g., 6.3f)
+# NOT placeholders (100.0f)
+
+# 4. Check device is connected
+ls -la /dev/ttyACM0
+# Should show: crw-rw---- 1 root dialout ... /dev/ttyACM0
+
+# 5. Flash
+cd esphome
+source ~/esphome-venv/bin/activate
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0
+```
+
+### ✅ After Flashing:
+
+```bash
+# Monitor logs for verification
+esphome logs bed-presence-detector.yaml --device /dev/ttyACM0
+
+# Look for these success indicators:
+# ✅ "WiFi: Connected to 'TP-Link_BECC'" (not "YOUR_WIFI_SSID_HERE")
+# ✅ "Baseline (moving): μ=6.30, σ=2.60" (your actual calibration, not 100.0, 20.0)
+# ✅ "Home Assistant ... connected"
+# ✅ "LD2410 Still Energy: Sending state X.XX %"
+```
+
+---
+
+## Common Sync Issues and Fixes
+
+### Issue 1: "I flashed firmware but it has old baseline values"
+
+**Root cause**: Ubuntu-node has stale code, didn't pull from git
+
+**Fix**:
+```bash
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+git status  # Check if behind
+git pull origin main  # Sync with GitHub
+grep "mu_move_" esphome/custom_components/bed_presence_engine/bed_presence.h  # Verify
+cd esphome && source ~/esphome-venv/bin/activate
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0  # Reflash
+```
+
+### Issue 2: "Device won't connect to WiFi after flashing"
+
+**Root cause**: Firmware compiled with placeholder WiFi credentials from Codespace
+
+**Fix**:
+```bash
+ssh ubuntu-node
+cd ~/bed-presence-sensor/esphome
+
+# Verify secrets has real credentials
+cat secrets.yaml | grep wifi_ssid
+# If shows placeholders, copy from backup:
+cat secrets.yaml.example  # NO! This has placeholders too
+
+# Get actual credentials (stored on ubuntu-node)
+cat ~/esphome-venv/secrets-backup.yaml  # If you made a backup
+# Or manually edit:
+nano secrets.yaml
+# Set: wifi_ssid: "TP-Link_BECC"
+#      wifi_password: "actual_password"
+
+# Reflash
+esphome run bed-presence-detector.yaml --device /dev/ttyACM0
+```
+
+**Prevention**: Always use ubuntu-node as source of truth for `secrets.yaml`
+
+### Issue 3: "Codespace and ubuntu-node code differ"
+
+**Root cause**: Made changes in one location without syncing
+
+**Fix**:
+```bash
+# Determine which has the "correct" code
+# Usually: Codespace has newer changes if you were editing there
+
+# On ubuntu-node: Check git status
+ssh ubuntu-node
+cd ~/bed-presence-sensor
+git status
+# If shows uncommitted changes:
+git diff  # Review changes
+# Option A: Discard local changes (if Codespace is correct)
+git reset --hard origin/main
+git pull origin main
+
+# Option B: Commit local changes (if ubuntu-node is correct)
+git add -A
+git commit -m "Fix: sync ubuntu-node changes"
+git push origin main
+# Then pull in Codespace
+```
+
+---
+
+## Workflow Best Practices Summary
+
+### ✅ DO:
+1. **Edit code in Codespace** and commit to git
+2. **Pull latest from git** on ubuntu-node before flashing
+3. **Use git log** to verify correct commit is checked out
+4. **Keep secrets.yaml on ubuntu-node** as source of truth
+5. **Run pre-flight checklist** before flashing firmware
+6. **Monitor logs after flashing** to verify correct baseline and WiFi
+
+### ❌ DON'T:
+1. **Edit code directly on ubuntu-node** without immediately committing
+2. **Flash firmware** without pulling latest from git
+3. **Copy secrets.yaml from Codespace to ubuntu-node** (wrong direction!)
+4. **Assume ubuntu-node is up to date** - always `git pull` first
+5. **Skip verification** - always check logs after flashing
+
+### 🔄 Mental Model:
+
+```
+Codespace (Dev) → Git (Source of Truth) → Ubuntu-node (Flash) → M5Stack
+     ▲                                            │
+     └────────── git pull (sync back) ────────────┘
+```
+
+---
+
+## Direct Workflow (Legacy - Single Location)
+
+**When to use**: Direct SSH development without Codespace
+
 ### 1. Connect to Node via SSH
 
 ```bash
@@ -336,6 +795,15 @@ esphome logs bed-presence-detector.yaml --device /dev/ttyACM0
 - Check sensor values: Developer Tools → States
 - Test threshold tuning: Adjust `k_on` and `k_off` numbers
 - Monitor presence state: `binary_sensor.bed_occupied`
+
+### 7. Commit Changes
+
+```bash
+cd ~/bed-presence-sensor
+git add -A
+git commit -m "Describe your changes"
+git push origin main
+```
 
 ## E2E Testing Setup
 
