@@ -1,8 +1,25 @@
 # Phase 2 Completion Steps
 
-**Status**: Phase 2 COMPLETE ✅
+**Implementation Status**: Phase 2 COMPLETE ✅
+**Deployment Status**: DEPLOYED TO HARDWARE ✅
+**Testing Status**: Physical Integration Tests PENDING ⏳
 **Date**: 2025-11-07
 **Implementation**: 4-State Machine with Temporal Filtering
+
+---
+
+## Deployment Summary
+
+✅ **Completed 2025-11-07**:
+- Firmware compiled successfully (1.0 MB, 54.8% flash usage)
+- Deployed to M5Stack @ 192.168.0.180
+- Connected to Home Assistant @ 192.168.0.148
+- All 7 entities verified in Home Assistant
+- State machine operational (DEBOUNCING_ON → PRESENT observed)
+
+⏳ **Pending**:
+- Physical integration testing (4 test scenarios in Step 3 below)
+- Real-world tuning based on usage patterns
 
 ---
 
@@ -59,7 +76,7 @@ Phase 2 transforms the Phase 1 immediate z-score detection into a robust state m
 - ✅ Firmware compiles successfully
 - ✅ Unit tests pass (14/14)
 
-### Step 1: Sync and Flash Firmware
+### Step 1: Sync and Flash Firmware ✅ COMPLETE
 
 **On Ubuntu-node** (via SSH):
 
@@ -86,19 +103,22 @@ ssh ubuntu-node
 - Logs show: "Setting up Bed Presence Engine (Phase 2)..."
 - Logs show debounce timer values: "Debounce timers: on=3000ms, off=5000ms, abs_clear=30000ms"
 
-### Step 2: Verify Home Assistant Integration
+### Step 2: Verify Home Assistant Integration ✅ COMPLETE
+
+**Deployment completed 2025-11-07**. All entities verified present and functional.
 
 **Check new entities exist:**
 
 1. Settings → Devices & Services → ESPHome → Bed Presence Detector
 2. Verify 3 new entities:
-   - `number.on_debounce_timer_ms`
-   - `number.off_debounce_timer_ms`
-   - `number.absolute_clear_delay_ms`
+   - `number.bed_presence_detector_on_debounce_timer_ms` ✅ (value: 3000)
+   - `number.bed_presence_detector_off_debounce_timer_ms` ✅ (value: 5000)
+   - `number.bed_presence_detector_absolute_clear_delay_ms` ✅ (value: 30000)
 3. Verify existing entities still work:
-   - `binary_sensor.bed_occupied`
-   - `number.k_on_on_threshold_multiplier`
-   - `number.k_off_off_threshold_multiplier`
+   - `binary_sensor.bed_presence_detector_bed_occupied` ✅ (state: on)
+   - `sensor.bed_presence_detector_presence_state_reason` ✅ (shows z-score and debounce info)
+   - `number.bed_presence_detector_k_on_on_threshold_multiplier` ✅
+   - `number.bed_presence_detector_k_off_off_threshold_multiplier` ✅
    - `text_sensor.presence_state_reason`
 
 **Update Dashboard:**
@@ -112,7 +132,9 @@ If dashboard doesn't auto-update:
 2. Copy content from `homeassistant/dashboards/bed_presence_dashboard.yaml`
 3. Paste and save
 
-### Step 3: Test Phase 2 Behavior
+### Step 3: Test Phase 2 Behavior ⏳ PENDING
+
+**Status**: Physical integration testing not yet performed. Firmware is deployed and entities are verified, but real-world debouncing behavior needs validation.
 
 **Test 1: Quick Motion (Should NOT Trigger)**
 
