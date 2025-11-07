@@ -223,32 +223,7 @@ The tests create a `SimplePresenceEngine` class that replicates Phase 1 logic wi
 
 ## Known Issues & Discrepancies
 
-### ~~1. Home Assistant Dashboard Entity Mismatches~~ ✅ FIXED
-
-**File**: `homeassistant/dashboards/bed_presence_dashboard.yaml`
-
-**Status**: ✅ **RESOLVED** - All entity names updated to match Phase 1 implementation
-
-**Changes made**:
-- ✅ Updated threshold visualization chart to use `number.k_on_on_threshold_multiplier` and `number.k_off_off_threshold_multiplier`
-- ✅ Updated configuration view entities to use correct Phase 1 entity names
-- ✅ Removed "Debounce Timers" section (Phase 2 feature, not yet implemented)
-- ✅ Commented out "Calibration Wizard" view (requires helper entities not yet defined)
-
-### ~~2. E2E Tests Missing Dependency~~ ✅ FIXED
-
-**File**: `tests/e2e/test_calibration_flow.py` and `tests/e2e/requirements.txt`
-
-**Status**: ✅ **RESOLVED** - Dependencies added and entity names corrected
-
-**Changes made**:
-- ✅ Added `homeassistant-api>=4.0.0` to `requirements.txt`
-- ✅ Updated all test functions to use correct entity names (`number.k_on_on_threshold_multiplier`, `number.k_off_off_threshold_multiplier`)
-- ✅ Corrected expected default values in `test_reset_to_defaults()` from (50, 30) to (4.0, 2.0)
-- ✅ Updated test value in `test_update_threshold_via_service()` from 60 to 5.0 (appropriate for z-score multiplier)
-- ✅ Marked `test_calibration_helpers_exist()` and `test_full_calibration_flow()` as skipped (Phase 3 features)
-
-### 3. Calibration Services Are Placeholders
+### 1. Calibration Services Are Placeholders
 
 **File**: `esphome/packages/services_calibration.yaml`
 
@@ -267,16 +242,12 @@ esphome:
 - `esphome.bed_presence_detector_stop_calibration` (placeholder)
 - `esphome.bed_presence_detector_reset_to_defaults` (functional - resets k_on/k_off to 4.0/2.0)
 
-### 4. Hardware Assets Are Empty Placeholders
+### 2. Hardware Assets Are Empty Placeholders
 
 **Files** (all 0 bytes):
 - `hardware/mounts/m5stack_side_mount.stl`
 - `docs/assets/wiring_diagram.png`
 - `docs/assets/demo.gif`
-
-### ~~5. Hardware Not Yet Tested~~ ✅ DEPLOYED AND OPERATIONAL
-
-**Status**: ✅ **Phase 1 firmware deployed and operational on M5Stack hardware**
 
 **Hardware Configuration**:
 - **Device**: M5Stack Basic (ESP32-D0WDQ6-V3, 16MB Flash, MAC: 08:b6:1f:a5:6e:68)
