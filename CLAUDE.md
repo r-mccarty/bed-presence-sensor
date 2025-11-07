@@ -129,8 +129,8 @@ The Phase 1 presence engine implements simple z-score based detection:
    - Baseline collected: 2025-11-06 with empty bed (30 samples over 60 seconds)
    - Location: New sensor position looking at bed
 3. **Threshold Comparison with Hysteresis**:
-   - Turn ON when `z > k_on` (default: 4.0)
-   - Turn OFF when `z < k_off` (default: 2.0)
+   - Turn ON when `z > k_on` (default: 9.0)
+   - Turn OFF when `z < k_off` (default: 4.0)
    - Hysteresis zone: `k_off < z < k_on` (state remains unchanged)
 4. **Immediate State Changes**: No temporal debouncing (this is Phase 1 behavior)
 
@@ -139,8 +139,8 @@ The Phase 1 presence engine implements simple z-score based detection:
 ```cpp
 class BedPresenceEngine : public Component, public binary_sensor::BinarySensor {
   // Configuration (set from ESPHome YAML)
-  float k_on_{4.0f};   // ON threshold multiplier
-  float k_off_{2.0f};  // OFF threshold multiplier
+  float k_on_{9.0f};   // ON threshold multiplier
+  float k_off_{4.0f};  // OFF threshold multiplier
 
   // ✅ CALIBRATED baseline (collected 2025-11-06, empty bed)
   float mu_move_{6.7f};    // Mean still energy (empty bed)
@@ -173,8 +173,8 @@ binary_sensor:
   - platform: bed_presence_engine
     name: "Bed Occupied"                    # binary_sensor.bed_occupied
     id: bed_occupied
-    k_on: 4.0
-    k_off: 2.0
+    k_on: 9.0
+    k_off: 4.0
     state_reason:
       name: "Presence State Reason"         # text_sensor.presence_state_reason
       id: presence_state_reason             # Shows z-score values
@@ -184,18 +184,18 @@ number:
     name: "k_on (ON Threshold Multiplier)"  # number.k_on_on_threshold_multiplier
     id: k_on_input
     min_value: 0.0
-    max_value: 10.0
+    max_value: 15.0
     step: 0.1
-    initial_value: 4.0
+    initial_value: 9.0
     restore_value: true                      # Persists across reboots
 
   - platform: template
     name: "k_off (OFF Threshold Multiplier)" # number.k_off_off_threshold_multiplier
     id: k_off_input
     min_value: 0.0
-    max_value: 10.0
+    max_value: 15.0
     step: 0.1
-    initial_value: 2.0
+    initial_value: 4.0
     restore_value: true
 ```
 
@@ -290,14 +290,19 @@ esphome:
 - **Std Dev (σ):** 3.51% (rounded to 3.5%)
 - **Samples:** 30 over 60 seconds
 - **Conditions:** Empty bed, door closed, minimal movement
-- **ON Threshold:** 6.7 + (4.0 × 3.5) = 20.7% (z > 4.0)
-- **OFF Threshold:** 6.7 + (2.0 × 3.5) = 13.7% (z < 2.0)
+- **ON Threshold:** 6.7 + (9.0 × 3.5) = 38.2% (z > 9.0)
+- **OFF Threshold:** 6.7 + (4.0 × 3.5) = 20.7% (z < 4.0)
 
 **Phase 1 Validation Results** (tested 2025-11-06):
 - ✅ Empty bed test: 3.0% still energy, z=-1.06, state=OFF
 - ✅ Occupied bed test: 64.0% still energy, z=16.37, state=ON
-- ✅ Hysteresis working correctly (proper ON/OFF thresholds)
+- ✅ Thresholds tuned to k_on=9.0, k_off=4.0 for reduced false positives
+- ✅ Wider hysteresis gap (17.5%) reduces oscillation
 - ✅ Phase 1 **COMPLETE AND VALIDATED**
+
+**Known Phase 1 Limitation:**
+- ⚠️ Sensor remains "twitchy" with rapid state changes due to no debouncing (Phase 2 feature)
+- Tuned thresholds reduce but don't eliminate oscillation during movement in bed
 
 ## Development Workflow
 
@@ -854,4 +859,4 @@ EOF
 - **Sensor**: LD2410 (firmware 2.44.25070917, UART GPIO16/17)
 - **Location**: New sensor position looking at bed
 - **Baseline**: μ=6.7%, σ=3.5% (empty bed, 30 samples, recalibrated 2025-11-06)
-- **Thresholds**: ON=20.7% (z>4.0), OFF=13.7% (z<2.0)
+- **Thresholds**: ON=38.2% (z>9.0), OFF=20.7% (z<4.0)

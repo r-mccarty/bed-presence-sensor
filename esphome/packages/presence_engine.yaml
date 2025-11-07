@@ -6,8 +6,8 @@ binary_sensor:
     name: "Bed Occupied"
     id: bed_occupied
     energy_sensor: ld2410_still_energy  # Using still/static energy per LD2410 naming
-    k_on: 4.0   # Turn ON when z-score > 4.0 (4 std deviations)
-    k_off: 2.0  # Turn OFF when z-score < 2.0 (2 std deviations)
+    k_on: 9.0   # Turn ON when z-score > 9.0 (9 std deviations)
+    k_off: 4.0  # Turn OFF when z-score < 4.0 (4 std deviations)
     state_reason:
       name: "Presence State Reason"
       id: presence_state_reason
@@ -19,9 +19,9 @@ number:
     name: "k_on (ON Threshold Multiplier)"
     id: k_on_input
     min_value: 0.0
-    max_value: 10.0
+    max_value: 15.0
     step: 0.1
-    initial_value: 4.0
+    initial_value: 9.0
     optimistic: true
     restore_value: true  # Phase 1 requirement
     mode: slider
@@ -35,9 +35,9 @@ number:
     name: "k_off (OFF Threshold Multiplier)"
     id: k_off_input
     min_value: 0.0
-    max_value: 10.0
+    max_value: 15.0
     step: 0.1
-    initial_value: 2.0
+    initial_value: 4.0
     optimistic: true
     restore_value: true  # Phase 1 requirement
     mode: slider

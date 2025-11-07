@@ -47,8 +47,8 @@ class BedPresenceEngine : public Component, public binary_sensor::BinarySensor {
   float sigma_stat_{3.5f};  // Same as sigma_move_ for Phase 1
 
   // Threshold multipliers (k_on > k_off for hysteresis)
-  float k_on_{4.0f};   // Turn ON when z > k_on (default: 4 std deviations)
-  float k_off_{2.0f};  // Turn OFF when z < k_off (default: 2 std deviations)
+  float k_on_{9.0f};   // Turn ON when z > k_on (default: 9 std deviations)
+  float k_off_{4.0f};  // Turn OFF when z < k_off (default: 4 std deviations)
 
   // Current state (simple boolean for Phase 1)
   bool is_occupied_{false};

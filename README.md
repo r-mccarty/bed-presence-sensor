@@ -13,21 +13,24 @@ The presence engine analyzes the LD2410 mmWave radar's "still energy" readings u
 
 1. **Z-Score Calculation**: `z = (current_energy - baseline_mean) / baseline_std_dev`
 2. **Threshold Comparison with Hysteresis**:
-   - Transition to **OCCUPIED** when `z > k_on` (default: 4.0 standard deviations)
-   - Transition to **VACANT** when `z < k_off` (default: 2.0 standard deviations)
+   - Transition to **OCCUPIED** when `z > k_on` (default: 9.0 standard deviations)
+   - Transition to **VACANT** when `z < k_off` (default: 4.0 standard deviations)
    - When `k_off < z < k_on`, the state remains unchanged (hysteresis prevents oscillation)
 
 This approach normalizes sensor readings to a statistical scale, making the detection robust across different environments and sensor placements. The `k_on` and `k_off` thresholds are **runtime tunable** via Home Assistant without reflashing the device.
 
 ## Development Status
 
-✅ **Phase 1 Complete** | ⏳ **Phase 2 Planned** | ⏳ **Phase 3 Planned**
+✅ **Phase 1 COMPLETE & VALIDATED** | ⏳ **Phase 2 Planned** | ⏳ **Phase 3 Planned**
 
 This project follows a **3-phase development roadmap** (see `docs/presence-engine-spec.md` for details):
 
-### Phase 1: Z-Score Based Detection ✅ IMPLEMENTED
+### Phase 1: Z-Score Based Detection ✅ COMPLETE & VALIDATED
 - ✅ **C++ Presence Engine**: Statistical z-score based detection with hysteresis
 - ✅ **Runtime Tunable Thresholds**: `k_on` and `k_off` adjustable via Home Assistant
+- ✅ **Hardware Deployed**: M5Stack + LD2410 tested and operational
+- ✅ **Baseline Calibrated**: Real sensor statistics collected and validated (μ=6.7%, σ=3.5%)
+- ✅ **Presence Detection Validated**: Correctly detects occupied (64% energy, z=16.37) and empty bed (3% energy, z=-1.06)
 - ✅ **Comprehensive C++ Unit Tests**: 14 tests covering all logic paths (219 lines, all passing)
 - ✅ **Home Assistant Dashboard**: Live visualization of energy levels and thresholds
 - ✅ **E2E Test Framework**: Python integration tests with proper dependencies
@@ -36,9 +39,9 @@ This project follows a **3-phase development roadmap** (see `docs/presence-engin
 - ✅ **Complete Documentation**: Quickstart, hardware setup, troubleshooting, FAQ
 
 **Phase 1 Characteristics:**
-- Immediate state transitions (no temporal debouncing - intentionally "twitchy")
-- Hysteresis via separate ON/OFF thresholds prevents rapid oscillation
-- Manual baseline calibration (hardcoded μ and σ values in code)
+- Immediate state transitions (no temporal debouncing)
+- Hysteresis via separate ON/OFF thresholds (k_on=9.0, k_off=4.0) reduces oscillation
+- Tuned thresholds provide wide margin (ON=38.2%, OFF=20.7%)
 - State reason tracking shows z-score values for debugging
 
 ### Phase 2: State Machine + Debouncing ⏳ PLANNED
@@ -52,17 +55,17 @@ This project follows a **3-phase development roadmap** (see `docs/presence-engin
 - Distance windowing to ignore specific zones
 - Calibration wizard UI in Home Assistant
 
-**Current Limitations:**
-- ⚠️ **Not yet tested with actual hardware** - firmware compiles successfully but needs hardware validation
-- ⚠️ No temporal debouncing in Phase 1 (sensor may be "twitchy" - adjust thresholds or wait for Phase 2)
-- ⚠️ Baseline statistics (μ, σ) must be manually calibrated by editing code (see `docs/phase1-hardware-setup.md`)
+**Known Limitations (Phase 1):**
+- ⚠️ **Sensor remains "twitchy"** - Rapid state oscillations during movement in bed due to no temporal debouncing (Phase 2 feature)
+- ⚠️ Tuned thresholds (k_on=9.0, k_off=4.0) reduce but don't eliminate oscillation
+- ⚠️ Baseline statistics (μ, σ) must be manually recalibrated if sensor position changes
 - ⚠️ Hardware assets (STL mounts, wiring diagrams) are placeholders
 
 **Ready to Contribute?**
-- **Hardware testers needed**: M5Stack + LD2410 validation and baseline calibration
-- **Phase 2 implementation**: State machine and debounce timer logic
+- **Phase 2 implementation**: State machine and debounce timer logic to eliminate twitchiness
 - **Phase 3 implementation**: Automated calibration algorithm using MAD statistics
 - **Hardware assets**: 3D printable mounts and wiring diagrams
+- **Documentation**: Additional calibration guides and tuning recommendations
 
 ## Key Features (Phase 1)
 
@@ -169,7 +172,7 @@ Once the device is connected to Home Assistant via ESPHome integration:
 
 3.  **Tune Thresholds:**
     - Adjust `k_on` (ON threshold) and `k_off` (OFF threshold) via the Configuration view
-    - Start with defaults (4.0 and 2.0) and adjust based on sensor behavior
+    - Defaults are k_on=9.0 and k_off=4.0 (tuned to reduce false positives)
     - Changes take effect immediately without reflashing
 
 ### 3. End-to-End (E2E) Integration Testing (Optional)
