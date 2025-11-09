@@ -1,18 +1,26 @@
 {
   "name": "HA Bed Presence Detector Dev Environment",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
       "installOhMyZsh": true,
       "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
     }
   },
+
+  // Runs as root during container creation. Perfect for installing system tools.
+  "onCreateCommand": "set -eux && curl -fsSL https://claude.ai/install.sh | bash || true && if [ -x /root/.local/bin/claude ]; then install -m 0755 /root/.local/bin/claude /usr/local/bin/claude; fi",
+
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
+
+  // Runs as the vscode user after the container is created. For user/project setup.
   "postCreateCommand": "mkdir -p ~/.config/vscode-dev-containers && touch ~/.config/vscode-dev-containers/first-run-notice-already-displayed && pip install --upgrade pip && pip install esphome platformio pytest pytest-asyncio yamllint black && cd tests/e2e && pip install -r requirements.txt && cd ../..",
+  
   "customizations": {
     "vscode": {
       "extensions": [
@@ -25,7 +33,8 @@
         "python.formatting.provider": "black",
         "[yaml]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode"
-        }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
       }
     }
   },

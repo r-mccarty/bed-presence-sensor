@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(/workspaces/bed-presence-sensor/.env.local)",
+      "Bash(esphome compile:*)",
+      "Bash(platformio test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
