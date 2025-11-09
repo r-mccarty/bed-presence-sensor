@@ -7,7 +7,17 @@
       "Bash(git push:*)",
       "Bash(/workspaces/bed-presence-sensor/.env.local)",
       "Bash(esphome compile:*)",
-      "Bash(platformio test:*)"
+      "Bash(platformio test:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:cli.github.com)",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(env)",
+      "Bash(gh codespace ports:*)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "Bash(bash -n:*)"
     ],
     "deny": [],
     "ask": []

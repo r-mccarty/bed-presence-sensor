@@ -6,6 +6,7 @@ Thank you for your interest in contributing to this project! This guide will hel
 
 - [Development Environment Setup](#development-environment-setup)
 - [Secrets Management](#secrets-management)
+- [AI CLI Tools Authentication](#ai-cli-tools-authentication)
 - [Development Commands](#development-commands)
 - [CI/CD Workflows](#cicd-workflows)
 - [Contributing Guidelines](#contributing-guidelines)
@@ -189,6 +190,93 @@ cat /workspaces/bed-presence-sensor/esphome/secrets.yaml
 **"Which file do I edit?"**
 - Changing WiFi network → Edit `esphome/secrets.yaml` (then recompile firmware)
 - Changing HA access for scripts → Edit `.env.local` (no recompile needed)
+
+---
+
+## AI CLI Tools Authentication
+
+This project includes several AI CLI tools in the development environment:
+- **Claude CLI** (`claude`)
+- **OpenAI Codex** (`codex`)
+- **Google Gemini CLI** (`gemini-cli`)
+
+### The Codespaces OAuth Challenge
+
+These CLI tools use OAuth flows for authentication, which presents a challenge in GitHub Codespaces:
+
+1. The CLI starts a local HTTP server on `localhost:PORT` to receive the OAuth callback
+2. The CLI opens a browser to an OAuth provider with `redirect_uri=http://localhost:PORT/callback`
+3. After you authenticate, the provider redirects your browser back to the callback URL
+4. **Problem:** In Codespaces, `localhost:PORT` is not accessible from your local browser
+
+**Solution:** Manually replace `localhost:PORT` with the Codespaces forwarded URL.
+
+### Manual Workaround (All CLI Tools)
+
+This process works for **Claude CLI**, **Codex**, and **Gemini CLI**.
+
+**Step 1: Start the Login**
+
+Run the login command:
+```bash
+claude login
+# OR
+codex login
+# OR
+gemini-cli login
+```
+
+The CLI will output:
+- An auth URL (e.g., `https://claude.ai/oauth/authorize?...` or similar)
+- A local callback URL (e.g., `Listening for auth callback on http://127.0.0.1:36919`)
+
+**Note the port number (e.g., 36919). Do not close the terminal.**
+
+**Step 2: Find the Forwarded Port**
+
+Go to the "Ports" tab in VS Code. Find the auto-forwarded port (e.g., 36919). Copy the public URL:
+```
+https://codespace-name-36919.app.github.dev/
+```
+
+**Step 3: Complete Authentication**
+
+After authenticating in your browser, you'll be redirected to a callback URL that looks like:
+```
+http://localhost:36919/callback?code=...&state=...
+```
+
+Replace `localhost:36919` with your forwarded URL from Step 2:
+```
+https://codespace-name-36919.app.github.dev/callback?code=...&state=...
+```
+
+**Paste the complete URL into your browser and press Enter.** The CLI will receive the callback and complete authentication.
+
+### Environment Variables Available
+
+For manual URL construction, these Codespaces environment variables are available:
+- `CODESPACE_NAME` - Your codespace's unique name (e.g., `urban-space-orbit-p7pvwjw9xjr2w95`)
+- `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN` - Usually `app.github.dev`
+
+**Pattern:** `https://${CODESPACE_NAME}-${PORT}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}/callback`
+
+### Troubleshooting
+
+**"Port not auto-forwarded"**
+- Check the CLI output for the port number
+- Verify the port appears in the Ports tab (may take a few seconds)
+- You can manually forward the port if needed
+
+**"Connection refused"**
+- Verify the port is forwarded and shows as "Running" in the Ports tab
+- Make sure the CLI process is still running when you paste the callback URL
+- Check that you copied the entire forwarded URL including the protocol (`https://`)
+
+**"Authentication failed"**
+- The OAuth state parameter may have expired - restart the login process
+- Ensure you copied the entire callback URL including all query parameters (`?code=...&state=...`)
+- Verify you're pasting the URL in the same browser where you authenticated
 
 ---
 
