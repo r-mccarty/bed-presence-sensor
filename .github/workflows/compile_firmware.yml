@@ -25,6 +25,17 @@ jobs:
       - name: Install ESPHome
         run: pip install esphome
 
+      - name: Create dummy secrets file
+        run: |
+          cd esphome
+          cat > secrets.yaml <<EOF
+          wifi_ssid: "DummySSID"
+          wifi_password: "DummyPassword123"
+          ap_password: "DummyAPPassword123"
+          api_encryption_key: "DummyAPIKey1234567890123456789012"
+          ota_password: "DummyOTAPassword123"
+          EOF
+
       - name: Compile ESPHome firmware
         run: |
           cd esphome
