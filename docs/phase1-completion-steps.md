@@ -1,5 +1,8 @@
 # Phase 1 Completion Steps
 
+> **Note:** This historical checklist remains for deep detail. For a consolidated Phase 1–3 scorecard, see
+> `docs/development-scorecard.md`.
+
 This document outlines the remaining tasks to complete Phase 1 implementation of the bed presence detection system.
 
 ## Phase 1 Changelog

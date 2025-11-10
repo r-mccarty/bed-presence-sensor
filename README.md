@@ -13,6 +13,8 @@ This project implements a **state machine with temporal filtering** and **statis
 *   **Phase 2: State Machine + Debouncing** - Temporal filtering for reliability ✅ **DEPLOYED**
 *   **Phase 3: Automated Calibration + Distance Windowing** - MAD statistics + HA services ✅ **DEPLOYED**
 
+See the [Development Scorecard](docs/development-scorecard.md) for a consolidated view of what shipped in each phase, validation evidence, and upcoming work.
+
 For a complete technical breakdown, see the [**Project Architecture**](docs/ARCHITECTURE.md).
 
 ## ✨ Key Features
@@ -29,6 +31,7 @@ For a complete technical breakdown, see the [**Project Architecture**](docs/ARCH
 
 | Guide | Description |
 |-------|-------------|
+| [**Development Scorecard**](docs/development-scorecard.md) | Snapshot of Phase 1–3 accomplishments, validation status, and forward-looking tasks |
 | [**Architecture**](docs/ARCHITECTURE.md) | Technical deep-dive: algorithms, state machine logic, and testing strategy |
 | [**Hardware Setup**](docs/HARDWARE_SETUP.md) | Wiring, sensor calibration, and hardware configuration |
 | [**Development Workflow**](docs/DEVELOPMENT_WORKFLOW.md) | Codespace ↔ ubuntu-node workflow, network access, and common tasks |

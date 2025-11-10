@@ -12,12 +12,24 @@ This is an ESP32-based bed presence detection system using an LD2410 mmWave sens
 *   **Hardware:** M5Stack Basic (ESP32) + LD2410 mmWave sensor, connected to Home Assistant at IP 192.168.0.148
 *   **Baseline:** μ=6.7%, σ=3.5% (calibrated 2025-11-06, empty bed)
 *   **Source of Truth for Logic:** The engineering specification is in `docs/presence-engine-spec.md`.
+*   **Phase Snapshot:** For a consolidated scoreboard of Phase 1–3 deliverables, validations, and pending work, see `docs/development-scorecard.md`.
 
 ---
 
 ## Key Documents and Context
 
 This repository's information has been refactored into focused documents. **Always refer to these documents for detailed information:**
+
+### For Phase History & Roadmap Snapshot
+
+**📖 Go to:** [`docs/development-scorecard.md`](docs/development-scorecard.md)
+
+**Contains:**
+- Timeline of Phase 1–3 with deployment dates and status
+- Delivered scope + validation evidence per phase
+- Remaining wishlist / Phase 3.1+ opportunities
+
+**Use when:** You need a quick, single-page view of project maturity and what to tackle next.
 
 ### For Understanding Technical Design and Algorithms
 

@@ -1,5 +1,8 @@
 # Phase 2 Completion Steps
 
+> **Note:** Detailed historical record retained. For a single view of Phase 1–3 achievements and next steps, see
+> `docs/development-scorecard.md`.
+
 **Implementation Status**: Phase 2 COMPLETE ✅
 **Deployment Status**: DEPLOYED TO HARDWARE ✅
 **Testing Status**: Physical Integration Tests PENDING ⏳
