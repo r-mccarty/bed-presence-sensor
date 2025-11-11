@@ -77,12 +77,12 @@ script:
                   entity_id: input_select.bed_presence_calibration_step
                 data:
                   option: Finalizing
-          - default:
-              - service: input_select.select_option
-                target:
-                  entity_id: input_select.bed_presence_calibration_step
-                data:
-                  option: Awaiting Empty Bed Confirmation
+        default:
+          - service: input_select.select_option
+            target:
+              entity_id: input_select.bed_presence_calibration_step
+            data:
+              option: Awaiting Empty Bed Confirmation
 
   bed_presence_cancel_baseline_calibration:
     alias: Bed Presence – Cancel Calibration
